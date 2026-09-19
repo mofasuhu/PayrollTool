@@ -1,5 +1,5 @@
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,15 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Node / build output
+node_modules/
+dist/
+dist-ssr/
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
@@ -26,7 +27,28 @@ dist-ssr
 # Python
 __pycache__/
 *.py[cod]
+.venv/
+venv/
+env/
+
+# Payroll inputs, outputs, and private workbook fixtures
+*.xls
+*.xlsx
+output/
+outputs/
+input/
+inputs/
+fixtures/private/
+
+# Local configuration and credentials
+.env
+.env.*
+*.pem
+*.key
+*credentials*
+*secrets*
 
 # Local Teams notify logs
-notify/Teams notify log.xlsx
+notify/
+Teams notify log.xlsx
 notify/*notify log*.xlsx
