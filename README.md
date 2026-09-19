@@ -1,62 +1,67 @@
-# PayrollTool Web
+# PayrollTool
 
-A browser-only web version of the existing PayrollTool. It runs the same Python scripts locally inside the user’s browser through Pyodide, so HR Excel files do not leave the device.
+PayrollTool is a browser-based payroll-workflow application for turning attendance, absence, vacation, holiday, resignation, and permission-report workbooks into styled monthly outputs and review summaries.
 
-## What It Does
+The UI is a React/Vite application. Payroll calculations run in a Web Worker through Pyodide, using the Python modules in `src/py/`; workbook parsing and downloads happen in the browser with `xlsx` and `file-saver`.
 
-- Runs the four-step payroll flow: detailed calendar, attendance/rules fill, final calendar, final summary.
-- Accepts `.xls` and `.xlsx` HR reports with the same exact basenames used by the Python tool.
-- Requires the two styled private templates on each real run so employee rosters, formulas, formats, merged cells, borders, and column widths are preserved.
-- Supports prepared permission files and raw permission request files.
-- Includes a standalone “Prepare Permissions Only” tool for converting `Nagwa_Permission_Request_Report.xls[x]` into `Nagwa_Permission_Request_permission_details.xls[x]`.
-- Exposes business-rule settings for Ramadan, schedules, special-rule pairs, hour reductions, lunch windows, abbreviations, request cutoff defaults, and debug mode.
+## Capabilities
 
-## Privacy
+- Runs the five visible processing stages: permission preparation when needed, detailed calendar, attendance/rules fill, final calendar, and payroll review.
+- Accepts `.xls` and `.xlsx` input workbooks through file selection or drag and drop.
+- Detects the attendance period and exposes settings for Ramadan windows, lunch rules, special-rule pairs, hour reductions, abbreviations, and permission cutoffs.
+- Preserves the supplied styled templates while filling the detailed, final, and review workbooks.
+- Produces downloadable detailed and final workbooks, a payroll-review workbook, and a prepared permission workbook when applicable.
+- Shows step logs, metrics, warnings, and summary cards without requiring a server.
 
-No backend server, API key, or upload service is required for payroll processing. All files are read in the browser and downloaded back to the same computer.
+## Privacy and data handling
 
-The first run downloads the Pyodide runtime and Python packages from the CDN; after that the browser cache normally reuses them. Do not commit real HR raw reports, generated payroll outputs, or unsanitized employee templates.
+Payroll files and generated workbooks are processed in the browser and are not uploaded to an application backend. The first run downloads Pyodide and its Python packages from the configured CDN, so an internet connection is needed for a cold start. Treat browser extensions, CDN dependencies, and the deployed site as part of your trust boundary.
 
-## HR Usage
+Do not commit real employee reports, payroll outputs, private templates, credentials, tokens, or environment files. The repository contains code and configuration examples only; provide real workbooks at run time.
 
-1. Open the deployed GitHub Pages URL.
-2. Drop the raw reports or select a folder containing the expected file names.
-3. Upload `Nagwa Technologies.xlsx` and `Final Nagwa Technologies.xlsx` in the Private Templates section.
-4. Check the detected payroll period.
-5. Review Settings if the month has special rules.
-6. Click `Run Payroll`.
-7. Download `Nagwa Technologies.xlsx` and `Final Nagwa Technologies.xlsx`.
+## Using the web app
 
-For permission preparation only, use the separate panel, upload `Nagwa_Permission_Request_Report.xls[x]`, choose month/year/cutoff options, and download the prepared report.
+1. Open the deployed app or run it locally.
+2. Upload the required attendance, absence, vacation/transaction, and public-holiday workbooks.
+3. Add the optional resignation workbook if needed.
+4. Add either a raw permission-request report or a prepared permission-details workbook. A raw report is prepared first when both are present.
+5. Upload the detailed and final styled templates required by the payroll flow.
+6. Confirm the detected period and review Settings for month-specific rules.
+7. Select **Run Payroll**, monitor Run Log, then download the outputs from the Outputs tab.
 
-## Local Development
+The file role is selected by the upload tile, so input filenames do not need to match a fixed name. The template workbooks must still contain the sheets, employee roster, formulas, and formatting expected by the Python processing modules.
+
+## Local development
+
+Requirements: Node.js 18 or newer.
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Verification
+Useful checks:
 
 ```bash
 npm run test
 npm run build
+npm run lint
 ```
 
-Smoke tests live under `src/**/*.test.ts`. The acceptance test is a real browser run with private reports/templates, then comparing downloaded workbooks with the desktop-generated `output/` workbooks.
+Tests live under `src/**/*.test.ts`. End-to-end workbook comparisons require sanitized test fixtures or private reports kept outside the repository.
 
-## Deployment
+## Architecture
 
-The workflow in `.github/workflows/deploy.yml` builds this folder and deploys the static Vite output to GitHub Pages on pushes to `main`. Runtime Python packages are loaded by the browser from the Pyodide CDN; no server process is deployed.
+- `src/App.tsx` — tabs, uploads, settings, run controls, logs, outputs, and summaries.
+- `src/workers/pyodideWorker.ts` — loads the Python runtime and executes the workflow off the UI thread.
+- `src/core/` — date, rule, type, and payroll-flow logic shared by the application.
+- `src/io/` — workbook reading, input-file classification, and browser file handling.
+- `src/py/` — Python workbook-processing stages and permission preparation.
+- `src/test/` — unit and smoke tests.
+- `.github/workflows/deploy.yml` — static build/deployment workflow when enabled for the repository.
 
-Target public repository:
+The build is static; no application server is deployed. Pyodide packages and browser assets are loaded at runtime.
 
-```bash
-git init
-git remote add origin git@github.com:farouknagwa/PayrollTool.git
-git add .
-git commit -m "Add PayrollTool web app"
-git push -u origin main
-```
+## License
 
-Run tests, build, and a privacy review before committing or pushing.
+See `LICENSE`.
